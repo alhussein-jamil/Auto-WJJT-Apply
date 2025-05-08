@@ -92,7 +92,7 @@ class WTTJScraper:
 
     def login(self, username: str, password: str) -> bool:
         """
-        Log in to Welcome to the Jungle.
+        Log in to Welcome to the Jungle with improved reliability.
 
         Args:
             username: WTTJ username (email)
@@ -105,169 +105,491 @@ class WTTJScraper:
             self.logger.warning("No login credentials provided")
             return False
 
+        # Number of retry attempts
+        max_retries = 2
+        retry_count = 0
+
+        while retry_count <= max_retries:
+            try:
+                if retry_count > 0:
+                    self.logger.info(f"Retry attempt {retry_count} of {max_retries}")
+
+                self.logger.info(f"Attempting to log in as {username}")
+
+                # Use a longer timeout for the initial page load
+                login_url = f"{self.base_url}/en/login"
+
+                # Clear cookies and cache before attempting login
+                if retry_count > 0:
+                    self.logger.info("Clearing cookies and cache before retry")
+                    self.page.context.clear_cookies()
+
+                # Navigate to login page with increased timeout
+                try:
+                    self.logger.info(f"Navigating to {login_url}")
+                    self.page.goto(login_url, timeout=60000)
+                except Exception as e:
+                    self.logger.warning(f"Navigation timeout, but continuing: {str(e)}")
+                    # Even if timeout occurs, page might have loaded enough to continue
+
+                # Check if the page is actually loaded
+                if not self.page.url:
+                    self.logger.error("Page failed to load at all")
+                    retry_count += 1
+                    continue
+
+                # Wait for page to stabilize
+                try:
+                    self.page.wait_for_load_state("networkidle", timeout=15000)
+                except Exception as e:
+                    self.logger.warning(f"Wait for load state timed out, but continuing: {str(e)}")
+
+                # Take a screenshot before login
+                self.page.screenshot(path=f"logs/login_page_before_{retry_count}.png")
+                self.save_page_source(f"logs/login_page_before_{retry_count}.html")
+
+                # Check for WTTJ maintenance page
+                if "maintenance" in self.page.content().lower():
+                    self.logger.error("WTTJ site is in maintenance mode")
+                    return False
+
+                # Check if we're already logged in
+                sign_in_button = self.page.query_selector("text=Sign in")
+
+                if not sign_in_button:
+                    self.logger.info("Already logged in or login page has different structure")
+
+                    # Check for user avatar which indicates logged-in state
+                    user_avatar = self.page.query_selector("a[href='/en/profile']") or self.page.query_selector("img[alt='User avatar']")
+                    if user_avatar:
+                        self.logger.info("Already logged in (detected user avatar)")
+                        return True
+
+                # Handle cookie banner if present (with shorter timeout)
+                cookie_selectors = [
+                    "button:has-text('Accept all cookies')",
+                    "button:has-text('OK for me')",
+                    "button:has-text('Got it!')"
+                ]
+
+                for selector in cookie_selectors:
+                    try:
+                        if self.page.is_visible(selector, timeout=5000):
+                            self.page.click(selector)
+                            self.logger.info(f"Clicked cookie consent: {selector}")
+                            self.page.wait_for_timeout(1000)  # Wait a moment after clicking
+                            break
+                    except Exception as e:
+                        self.logger.warning(f"Error clicking cookie consent: {str(e)}")
+
+                # Handle location popup if present
+                location_popup_handled = self._handle_location_popup_during_login()
+                if location_popup_handled:
+                    self.logger.info("Location popup handled during login")
+
+                # Wait briefly after handling popups
+                self.page.wait_for_timeout(1000)
+
+                # Take another screenshot after popups
+                self.page.screenshot(path=f"logs/login_after_popups_{retry_count}.png")
+
+                # Try LinkedIn login first if available
+                linkedin_login = self._try_linkedin_login(username, password)
+                if linkedin_login:
+                    self.logger.info("LinkedIn login successful")
+                    return True
+
+                # Find and fill email field - try multiple selectors for robustness
+                email_selectors = [
+                    'input[type="email"]',
+                    'input[name="email"]',
+                    'input[placeholder*="email" i]',
+                    'input[placeholder*="Email" i]'
+                ]
+
+                email_filled = False
+                for selector in email_selectors:
+                    try:
+                        if self.page.is_visible(selector, timeout=5000):
+                            self.page.fill(selector, username)
+                            self.logger.info(f"Filled email using selector: {selector}")
+                            email_filled = True
+                            break
+                    except Exception as e:
+                        self.logger.warning(f"Error filling email with selector {selector}: {str(e)}")
+
+                if not email_filled:
+                    self.logger.error("Could not find email field")
+                    self.page.screenshot(path=f"logs/login_email_not_found_{retry_count}.png")
+                    retry_count += 1
+                    continue
+
+                # Find and fill password field
+                password_selectors = [
+                    'input[type="password"]',
+                    'input[name="password"]',
+                    'input[placeholder*="password" i]',
+                    'input[placeholder*="Password" i]'
+                ]
+
+                password_filled = False
+                for selector in password_selectors:
+                    try:
+                        if self.page.is_visible(selector, timeout=5000):
+                            self.page.fill(selector, password)
+                            self.logger.info(f"Filled password using selector: {selector}")
+                            password_filled = True
+                            break
+                    except Exception as e:
+                        self.logger.warning(f"Error filling password with selector {selector}: {str(e)}")
+
+                if not password_filled:
+                    self.logger.error("Could not find password field")
+                    self.page.screenshot(path=f"logs/login_password_not_found_{retry_count}.png")
+                    retry_count += 1
+                    continue
+
+                # Find and click submit button
+                submit_selectors = [
+                    'button[type="submit"]',
+                    'button:has-text("Log in")',
+                    'button:has-text("Sign in")',
+                    'input[type="submit"]'
+                ]
+
+                submit_clicked = False
+                for selector in submit_selectors:
+                    try:
+                        if self.page.is_visible(selector, timeout=5000):
+                            # Take a screenshot before clicking
+                            self.page.screenshot(path=f"logs/login_before_submit_{retry_count}.png")
+
+                            # Click the button
+                            self.page.click(selector)
+                            self.logger.info(f"Clicked submit button: {selector}")
+                            submit_clicked = True
+                            break
+                    except Exception as e:
+                        self.logger.warning(f"Error clicking submit with selector {selector}: {str(e)}")
+
+                if not submit_clicked:
+                    self.logger.error("Could not find login submit button")
+                    self.page.screenshot(path=f"logs/login_submit_not_found_{retry_count}.png")
+                    retry_count += 1
+                    continue
+
+                # Wait for navigation after login with more generous timeout
+                try:
+                    self.page.wait_for_load_state("networkidle", timeout=30000)
+                except Exception as e:
+                    self.logger.warning(f"Timeout waiting after login submit, but continuing: {str(e)}")
+
+                # Take a screenshot after login attempt
+                self.page.screenshot(path=f"logs/login_after_submit_{retry_count}.png")
+                self.save_page_source(f"logs/login_after_submit_{retry_count}.html")
+
+                # Multiple checks to verify login success
+                login_success = self._verify_login_success()
+                if login_success:
+                    self.logger.info("Login successful! Verification completed.")
+                    return True
+
+                # If we get here, login failed - try again
+                self.logger.warning(f"Login attempt {retry_count + 1} failed")
+                retry_count += 1
+
+                # Wait before next retry
+                self.page.wait_for_timeout(5000)
+
+            except Exception as e:
+                self.logger.error(f"Error during login attempt {retry_count + 1}: {str(e)}")
+                import traceback
+                self.logger.error(traceback.format_exc())
+                self.page.screenshot(path=f"logs/login_error_{retry_count}.png")
+                retry_count += 1
+
+                # Wait before next retry
+                self.page.wait_for_timeout(5000)
+
+        # If we get here, all retries failed
+        self.logger.error(f"Login failed after {max_retries + 1} attempts")
+        return False
+
+
+    def _handle_location_popup_during_login(self) -> bool:
+        """Handle location popups specifically during login process."""
         try:
-            self.logger.info(f"Attempting to log in as {username}")
-
-            # Navigate to login page
-            login_url = f"{self.base_url}/en/login"
-            self.page.goto(login_url, timeout=30000)
-            self.page.wait_for_load_state("networkidle", timeout=10000)
-
-            # Take a screenshot before login
-            self.page.screenshot(path="logs/login_page_before.png")
-            self.save_page_source("logs/login_page_before.html")
-
-            # Check if we're already logged in
-            sign_in_button = self.page.query_selector("text=Sign in")
-
-            if not sign_in_button:
-                self.logger.info("Already logged in or login page has different structure")
-
-                # Check for user avatar which indicates logged-in state
-                user_avatar = self.page.query_selector("a[href='/en/profile']") or self.page.query_selector("img[alt='User avatar']")
-                if user_avatar:
-                    self.logger.info("Already logged in (detected user avatar)")
-                    return True
-
-            # Handle cookie banner if present
-            cookie_selectors = [
-                "button:has-text('Accept all cookies')",
-                "button:has-text('OK for me')",
-                "button:has-text('Got it!')"
+            # Check for the "Looks like you're in France?" popup
+            france_popup_texts = [
+                "Looks like you're in France",
+                "It looks like you're in France",
+                "Stay on the current website"
             ]
 
-            for selector in cookie_selectors:
-                if self.page.is_visible(selector):
-                    self.page.click(selector)
-                    self.logger.info(f"Clicked cookie consent: {selector}")
-                    self.page.wait_for_timeout(1000)  # Wait a moment after clicking
-                    break
+            # Look for any text containing these phrases
+            for text in france_popup_texts:
+                try:
+                    text_element = self.page.query_selector(f"text={text}")
+                    if text_element:
+                        self.logger.info(f"Found location popup with text: {text}")
 
-            # Find and fill email field - try multiple selectors for robustness
-            email_selectors = [
-                'input[type="email"]',
-                'input[name="email"]',
-                'input[placeholder*="email"]',
-                'input[placeholder*="Email"]'
+                        # Look for "Stay" buttons
+                        stay_buttons = [
+                            "button:has-text('Stay on the current website')",
+                            "button:has-text('Stay on this website')",
+                            "button:has-text('Stay')",
+                            ".modal-footer button:nth-child(2)",  # Usually the second button is "Stay"
+                        ]
+
+                        for button in stay_buttons:
+                            try:
+                                if self.page.is_visible(button, timeout=3000):
+                                    self.page.click(button)
+                                    self.logger.info(f"Clicked 'Stay' button: {button} during login")
+                                    self.page.wait_for_timeout(1000)
+                                    return True
+                            except Exception as e:
+                                self.logger.warning(f"Error clicking stay button {button}: {str(e)}")
+
+                        # If we couldn't find a specific button, try clicking close button
+                        close_buttons = [
+                            "button[aria-label='Close']",
+                            "button.close",
+                            "[data-testid='modal-close']"
+                        ]
+
+                        for button in close_buttons:
+                            try:
+                                if self.page.is_visible(button, timeout=2000):
+                                    self.page.click(button)
+                                    self.logger.info(f"Clicked close button: {button} during login")
+                                    self.page.wait_for_timeout(1000)
+                                    return True
+                            except Exception as e:
+                                self.logger.warning(f"Error clicking close button {button}: {str(e)}")
+                except Exception as e:
+                    self.logger.warning(f"Error checking for text '{text}': {str(e)}")
+
+            return False
+        except Exception as e:
+            self.logger.warning(f"Error in _handle_location_popup_during_login: {str(e)}")
+            return False
+
+
+    def _try_linkedin_login(self, username: str, password: str) -> bool:
+        """Try to login via LinkedIn if the option is available."""
+        try:
+            linkedin_selectors = [
+                "a[href*='linkedin']",
+                "a:has-text('Continue with LinkedIn')",
+                "button:has-text('Continue with LinkedIn')",
+                "button:has-text('Sign in with LinkedIn')",
+                "a:has-text('Sign in with LinkedIn')"
             ]
 
-            email_filled = False
-            for selector in email_selectors:
-                if self.page.is_visible(selector):
-                    self.page.fill(selector, username)
-                    self.logger.info(f"Filled email using selector: {selector}")
-                    email_filled = True
-                    break
+            for selector in linkedin_selectors:
+                try:
+                    if self.page.is_visible(selector, timeout=3000):
+                        self.page.screenshot(path="logs/before_linkedin_click.png")
+                        self.logger.info(f"Found LinkedIn login option: {selector}")
 
-            if not email_filled:
-                self.logger.error("Could not find email field")
-                self.page.screenshot(path="logs/login_email_not_found.png")
-                return False
+                        # Click the LinkedIn button
+                        self.page.click(selector)
+                        self.logger.info("Clicked LinkedIn login button")
 
-            # Find and fill password field
-            password_selectors = [
-                'input[type="password"]',
-                'input[name="password"]',
-                'input[placeholder*="password"]',
-                'input[placeholder*="Password"]'
-            ]
+                        # Wait for LinkedIn page to load
+                        try:
+                            self.page.wait_for_load_state("networkidle", timeout=20000)
+                        except Exception as e:
+                            self.logger.warning(f"Timeout waiting for LinkedIn page to load: {str(e)}")
 
-            password_filled = False
-            for selector in password_selectors:
-                if self.page.is_visible(selector):
-                    self.page.fill(selector, password)
-                    self.logger.info(f"Filled password using selector: {selector}")
-                    password_filled = True
-                    break
+                        self.page.screenshot(path="logs/linkedin_login_page.png")
 
-            if not password_filled:
-                self.logger.error("Could not find password field")
-                self.page.screenshot(path="logs/login_password_not_found.png")
-                return False
+                        # Check if we're on LinkedIn domain
+                        if "linkedin.com" in self.page.url:
+                            self.logger.info("Successfully navigated to LinkedIn login")
 
-            # Find and click submit button
-            submit_selectors = [
-                'button[type="submit"]',
-                'button:has-text("Log in")',
-                'button:has-text("Sign in")',
-                'input[type="submit"]'
-            ]
+                            # Fill LinkedIn email field
+                            email_filled = False
+                            for email_selector in ["input#username", "input[name='session_key']", "input[type='email']"]:
+                                try:
+                                    if self.page.is_visible(email_selector, timeout=5000):
+                                        self.page.fill(email_selector, username)
+                                        self.logger.info(f"Filled LinkedIn email using selector: {email_selector}")
+                                        email_filled = True
+                                        break
+                                except Exception as e:
+                                    self.logger.warning(f"Error filling LinkedIn email: {str(e)}")
 
-            submit_clicked = False
-            for selector in submit_selectors:
-                if self.page.is_visible(selector):
-                    # Take a screenshot before clicking
-                    self.page.screenshot(path="logs/login_before_submit.png")
+                            if not email_filled:
+                                self.logger.error("Could not find LinkedIn email field")
+                                self.page.screenshot(path="logs/linkedin_email_not_found.png")
+                                return False
 
-                    # Click the button
-                    self.page.click(selector)
-                    self.logger.info(f"Clicked submit button: {selector}")
-                    submit_clicked = True
-                    break
+                            # Fill LinkedIn password field
+                            password_filled = False
+                            for password_selector in ["input#password", "input[name='session_password']", "input[type='password']"]:
+                                try:
+                                    if self.page.is_visible(password_selector, timeout=5000):
+                                        self.page.fill(password_selector, password)
+                                        self.logger.info(f"Filled LinkedIn password using selector: {password_selector}")
+                                        password_filled = True
+                                        break
+                                except Exception as e:
+                                    self.logger.warning(f"Error filling LinkedIn password: {str(e)}")
 
-            if not submit_clicked:
-                self.logger.error("Could not find login submit button")
-                self.page.screenshot(path="logs/login_submit_not_found.png")
-                return False
+                            if not password_filled:
+                                self.logger.error("Could not find LinkedIn password field")
+                                self.page.screenshot(path="logs/linkedin_password_not_found.png")
+                                return False
 
-            # Wait for navigation after login
-            self.page.wait_for_load_state("networkidle", timeout=15000)
+                            # Click LinkedIn sign in button
+                            sign_in_clicked = False
+                            for sign_in_selector in ["button[type='submit']", "button:has-text('Sign in')"]:
+                                try:
+                                    if self.page.is_visible(sign_in_selector, timeout=5000):
+                                        self.page.click(sign_in_selector)
+                                        self.logger.info(f"Clicked LinkedIn sign in button: {sign_in_selector}")
+                                        sign_in_clicked = True
+                                        break
+                                except Exception as e:
+                                    self.logger.warning(f"Error clicking LinkedIn sign in: {str(e)}")
 
-            # Take a screenshot after login attempt
-            self.page.screenshot(path="logs/login_after_submit.png")
-            self.save_page_source("logs/login_after_submit.html")
+                            if not sign_in_clicked:
+                                self.logger.error("Could not find LinkedIn sign in button")
+                                self.page.screenshot(path="logs/linkedin_sign_in_not_found.png")
+                                return False
 
-            # Multiple checks to verify login success
+                            # Wait for redirect back to WTTJ
+                            try:
+                                self.page.wait_for_load_state("networkidle", timeout=30000)
+                            except Exception as e:
+                                self.logger.warning(f"Timeout waiting for redirect after LinkedIn login: {str(e)}")
 
-            # Check 1: URL check - we should no longer be on the login page
-            current_url = self.page.url
-            if "/login" in current_url or "/sign-in" in current_url:
-                self.logger.warning("Still on login page after submission - login likely failed")
+                            self.page.screenshot(path="logs/after_linkedin_login.png")
 
-                # Check for error messages
-                error_message = self.page.query_selector("div.error-message") or self.page.query_selector("p.error")
-                if error_message:
-                    error_text = error_message.text_content()
-                    self.logger.error(f"Login error: {error_text}")
+                            # Check for LinkedIn authorization screen
+                            authorize_clicked = False
+                            for authorize_selector in ["button:has-text('Allow')", "button:has-text('Authorize')", "button:has-text('Continue')"]:
+                                try:
+                                    if self.page.is_visible(authorize_selector, timeout=5000):
+                                        self.page.click(authorize_selector)
+                                        self.logger.info(f"Clicked LinkedIn authorization button: {authorize_selector}")
+                                        authorize_clicked = True
+                                        break
+                                except Exception as e:
+                                    self.logger.warning(f"Error with LinkedIn authorization: {str(e)}")
 
-                return False
+                            if authorize_clicked:
+                                # Wait again for final redirect
+                                try:
+                                    self.page.wait_for_load_state("networkidle", timeout=30000)
+                                except Exception as e:
+                                    self.logger.warning(f"Timeout waiting after LinkedIn authorization: {str(e)}")
 
-            # Check 2: Look for user avatar or profile elements
-            avatar_selectors = [
-                "a[href='/en/profile']",
-                "img[alt='User avatar']",
-                "a[href*='account']",
-                ".user-profile-icon"
-            ]
+                                self.page.screenshot(path="logs/after_linkedin_authorization.png")
 
-            for selector in avatar_selectors:
-                if self.page.is_visible(selector):
-                    self.logger.info(f"Login successful! Found profile element: {selector}")
-                    return True
+                                # Check if we're back on WTTJ and logged in
+                                if "welcometothejungle.com" in self.page.url:
+                                    login_success = self._verify_login_success()
+                                    if login_success:
+                                        self.logger.info("LinkedIn login successful!")
+                                        return True
 
-            # Check 3: Look for elements that indicate we're logged in
-            logged_in_indicators = [
-                "a:has-text('Profile')",
-                "a:has-text('My Account')",
-                "a:has-text('Sign out')",
-                "a:has-text('Log out')"
-            ]
+                                self.logger.warning("LinkedIn login process completed but login verification failed")
+                                return False
+                            else:
+                                self.logger.warning("Clicked LinkedIn login but didn't navigate to LinkedIn domain")
+                                return False
+                except Exception as e:
+                    self.logger.warning(f"Error with LinkedIn selector {selector}: {str(e)}")
 
-            for selector in logged_in_indicators:
-                if self.page.is_visible(selector):
-                    self.logger.info(f"Login successful! Found indicator: {selector}")
-                    return True
-
-            # If we've reached here without confirming login, it's inconclusive
-            self.logger.warning("Login status inconclusive - proceeding with caution")
-            return True  # Assume success unless clearly failed
+            self.logger.info("No LinkedIn login option found")
+            return False
 
         except Exception as e:
-            self.logger.error(f"Error during login: {str(e)}")
+            self.logger.error(f"Error in LinkedIn login attempt: {str(e)}")
             import traceback
             self.logger.error(traceback.format_exc())
-            self.page.screenshot(path="logs/login_error.png")
             return False
+
+
+    def _verify_login_success(self) -> bool:
+        """Verify if login was successful using multiple checks."""
+
+        # Check 1: URL check - we should no longer be on the login page
+        current_url = self.page.url
+        if "/login" in current_url or "/sign-in" in current_url:
+            self.logger.warning("Still on login page after submission - login likely failed")
+
+            # Check for error messages
+            try:
+                error_elements = self.page.query_selector_all("div.error-message, p.error, .error-text")
+                if error_elements:
+                    for error in error_elements:
+                        error_text = error.inner_text()
+                        if error_text:
+                            self.logger.error(f"Login error message: {error_text}")
+            except Exception as e:
+                self.logger.warning(f"Error checking for error messages: {str(e)}")
+
+            return False
+
+        # Check 2: Look for user avatar or profile elements
+        avatar_selectors = [
+            "a[href='/en/profile']",
+            "img[alt='User avatar']",
+            "a[href*='account']",
+            ".user-profile-icon"
+        ]
+
+        for selector in avatar_selectors:
+            try:
+                if self.page.is_visible(selector, timeout=3000):
+                    self.logger.info(f"Found profile element after login: {selector}")
+                    return True
+            except Exception as e:
+                continue
+
+        # Check 3: Look for elements that indicate we're logged in
+        logged_in_indicators = [
+            "a:has-text('Profile')",
+            "a:has-text('My Account')",
+            "a:has-text('Sign out')",
+            "a:has-text('Log out')"
+        ]
+
+        for selector in logged_in_indicators:
+            try:
+                if self.page.is_visible(selector, timeout=3000):
+                    self.logger.info(f"Found logged-in indicator: {selector}")
+                    return True
+            except Exception as e:
+                continue
+
+        # Check 4: Look for elements that indicate we're still in the login process
+        login_elements = [
+            "input[type='password']",
+            "button:has-text('Log in')",
+            "button:has-text('Sign in')"
+        ]
+
+        for selector in login_elements:
+            try:
+                if self.page.is_visible(selector, timeout=3000):
+                    self.logger.warning(f"Still seeing login element: {selector} - login failed")
+                    return False
+            except Exception as e:
+                continue
+
+        # If we've reached here without a clear indicator, check if we're still on the login page
+        if "/login" not in current_url and "/sign-in" not in current_url:
+            self.logger.info("Login appears to be successful based on URL change")
+            return True
+
+        # If we reach here, login status is inconclusive
+        self.logger.warning("Login status inconclusive - will proceed with caution")
+        return False
 
     def get_job_listings(self, query: str, location: str = None, radius: int = 20, page_num: int = 1) -> list:
         """

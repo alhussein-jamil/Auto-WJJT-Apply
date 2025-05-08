@@ -195,48 +195,64 @@ def _handle_login(page: Page, config: Settings, screenshot_dir: str) -> bool:
 
         logger.info(f"Logging in as {config.user_email}")
 
-        # Navigate to login page
+        # Navigate to login page with extended timeout
         login_url = "https://www.welcometothejungle.com/en/login"
-        page.goto(login_url, timeout=60000)
-        page.wait_for_load_state("networkidle", timeout=15000)
+        try:
+            page.goto(login_url, timeout=60000)
+            page.wait_for_load_state("networkidle", timeout=15000)
+        except Exception as e:
+            logger.warning(f"Timeout during login page navigation, but continuing: {str(e)}")
+            # Even if timeout occurs, page might have loaded enough to continue
 
         # Take screenshot of login page
         login_page_path = f"{screenshot_dir}/login_page.png"
         page.screenshot(path=login_page_path)
         logger.info(f"Login page screenshot saved: {login_page_path}")
 
-        # Handle cookie consent if present
-        _handle_cookie_consent(page)
+        # Handle cookie consent if present - with shorter timeout
+        try:
+            _handle_cookie_consent(page)
+        except Exception as e:
+            logger.warning(f"Error handling cookie consent: {str(e)}")
 
         # Check for "Stay on current website" popup related to location
-        _handle_location_popup(page)
+        try:
+            _handle_location_popup(page)
+        except Exception as e:
+            logger.warning(f"Error handling location popup: {str(e)}")
+
+        # Wait briefly after handling popups
+        page.wait_for_timeout(1000)
 
         # First, try to look for LinkedIn login option
-        linkedin_login_attempted = _attempt_linkedin_login(page, config, screenshot_dir)
-        if linkedin_login_attempted:
-            # Wait for navigation after LinkedIn login with increased timeout
-            try:
-                page.wait_for_load_state("networkidle", timeout=45000)
-            except Exception as e:
-                logger.warning(f"Timeout waiting for page load after LinkedIn login: {str(e)}")
+        try:
+            linkedin_login_attempted = _attempt_linkedin_login(page, config, screenshot_dir)
+            if linkedin_login_attempted:
+                # Wait for navigation after LinkedIn login with increased timeout
+                try:
+                    page.wait_for_load_state("networkidle", timeout=45000)
+                except Exception as e:
+                    logger.warning(f"Timeout waiting for page load after LinkedIn login: {str(e)}")
 
-            # Take screenshot after login attempt
-            after_linkedin_login_path = f"{screenshot_dir}/after_linkedin_login.png"
-            page.screenshot(path=after_linkedin_login_path)
-            logger.info(f"Post-LinkedIn-login screenshot saved: {after_linkedin_login_path}")
+                # Take screenshot after login attempt
+                after_linkedin_login_path = f"{screenshot_dir}/after_linkedin_login.png"
+                page.screenshot(path=after_linkedin_login_path)
+                logger.info(f"Post-LinkedIn-login screenshot saved: {after_linkedin_login_path}")
 
-            # Check for successful login
-            login_success = _verify_login_success(page)
-            if login_success:
-                logger.info("LinkedIn login successful")
-                return True
-            else:
-                logger.warning("LinkedIn login failed - could not verify successful login")
-                # Fall back to regular login if LinkedIn failed
+                # Check for successful login
+                login_success = _verify_login_success(page)
+                if login_success:
+                    logger.info("LinkedIn login successful")
+                    return True
+                else:
+                    logger.warning("LinkedIn login failed - could not verify successful login")
+                    # Fall back to regular login if LinkedIn failed
+        except Exception as e:
+            logger.warning(f"Error during LinkedIn login attempt: {str(e)}")
 
         # If LinkedIn login wasn't available or failed, proceed with regular login
 
-        # Fill login form with multiple selector attempts
+        # Fill login form with multiple selector attempts and shorter timeouts
         login_form_elements = {
             'email': {
                 'selectors': [
@@ -260,11 +276,14 @@ def _handle_login(page: Page, config: Settings, screenshot_dir: str) -> bool:
         for field_name, field_data in login_form_elements.items():
             field_filled = False
             for selector in field_data['selectors']:
-                if page.is_visible(selector):
-                    page.fill(selector, field_data['value'])
-                    logger.info(f"Filled {field_name} using selector: {selector}")
-                    field_filled = True
-                    break
+                try:
+                    if page.is_visible(selector, timeout=5000):
+                        page.fill(selector, field_data['value'])
+                        logger.info(f"Filled {field_name} using selector: {selector}")
+                        field_filled = True
+                        break
+                except Exception as e:
+                    logger.warning(f"Error filling {field_name} with selector {selector}: {str(e)}")
 
             if not field_filled:
                 logger.error(f"Could not find {field_name} field")
@@ -284,11 +303,14 @@ def _handle_login(page: Page, config: Settings, screenshot_dir: str) -> bool:
         ]
 
         for selector in submit_selectors:
-            if page.is_visible(selector):
-                page.click(selector)
-                logger.info(f"Clicked submit button: {selector}")
-                submit_clicked = True
-                break
+            try:
+                if page.is_visible(selector, timeout=5000):
+                    page.click(selector)
+                    logger.info(f"Clicked submit button: {selector}")
+                    submit_clicked = True
+                    break
+            except Exception as e:
+                logger.warning(f"Error clicking submit button {selector}: {str(e)}")
 
         if not submit_clicked:
             logger.error("Could not find login submit button")
@@ -297,7 +319,7 @@ def _handle_login(page: Page, config: Settings, screenshot_dir: str) -> bool:
 
         # Wait for navigation after login with increased timeout
         try:
-            page.wait_for_load_state("networkidle", timeout=30000)
+            page.wait_for_load_state("networkidle", timeout=45000)
         except Exception as e:
             logger.warning(f"Timeout waiting for page load after login: {str(e)}")
             # Continue anyway, we'll check for login success
