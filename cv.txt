@@ -1,0 +1,126 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{multicol}
+\usepackage{graphicx}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+\definecolor{navyblue}{RGB}{0, 0, 128}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+\begin{center}
+    {\Huge \textbf{Alhussein Jamil}}\\[0.5em]
+    \textit{Résidant à Paris, France}\\[0.5em]
+    \textcolor{navyblue}{\rule{\textwidth}{0.5mm}}
+    \vspace{0.5em}
+    \href{https://ajvendetta.portfoliobox.net}{ajvendetta.portfoliobox.net} \hfill
+    \href{https://github.com/alhussein-jamil}{github.com/alhussein-jamil}\\
+    \href{mailto:alhussein.jamil@polytechnique.edu}{alhussein.jamil@polytechnique.edu} \hfill
+    +33 06 05 60 85 48
+\end{center}
+
+\vspace{1em}
+
+\section*{\textcolor{navyblue}{Résumé}}
+Ingénieur polytechnicien avec une formation d'excellence à l'École Polytechnique, reconnue mondialement pour former des leaders en sciences et ingénierie. Passionné par l'intelligence artificielle, la robotique, et les systèmes intelligents, avec une expérience variée allant de la recherche en apprentissage automatique à des projets concrets en vision par ordinateur et développement de jeux vidéo. Fort d'une rigueur méthodologique et d'une créativité éprouvée, je conçois des solutions innovantes adaptées aux enjeux technologiques complexes.
+
+\vspace{-0.5em}
+\section*{\textcolor{navyblue}{Compétences Clés}}
+\begin{multicols}{2}
+    \begin{itemize}[label=--, left=0.5cm]
+        \item \textbf{Langages} : Python, PyTorch, C++, C\#, Java, Caml
+        \item \textbf{Technologies} : Git, GCS, Gradio, 3dsMax, Unity3D
+        \item \textbf{Domaines} : Vision par ordinateur, simulation physique, optimisation
+        \item \textbf{Soft Skills} : Communication efficace, collaboration en équipe, leadership, résolution de problèmes, gestion du temps
+    \end{itemize}
+\end{multicols}
+
+\vspace{-0.5em}
+\section*{\textcolor{navyblue}{Formation}}
+\begin{itemize}[left=0.5cm]
+    \item \textbf{École Polytechnique, Palaiseau, France} \\
+    \textit{Cycle Ingénieur -- sept. 2020 - Présent} \\
+    L'une des institutions les plus prestigieuses au monde. Programme intensif alliant mathématiques, physique et informatique, avec une spécialisation en apprentissage automatique. Participation à des projets de robotique et de développement de jeux vidéo.
+
+    \item \textbf{Université Pierre et Marie Curie, Paris, France} \\
+    \textit{Master 2 : Systèmes Intelligents (ISI) -- sept. 2023 - sept. 2024} \\
+    Programme avancé en intelligence artificielle, avec un accent sur la vision par ordinateur et la perception émotionnelle en réalité virtuelle.
+
+    \item \textbf{Lycée Louis Le Grand, Paris, France} \\
+    \textit{Classes Préparatoires, MP* -- sept. 2019 - août 2020} \\
+    Formation scientifique d'élite en mathématiques et physique, préparant aux concours des grandes écoles d'ingénieurs.
+
+    \item \textbf{Lycée Buffon, Paris, France} \\
+    \textit{Classes Préparatoires, MPSI -- sept. 2018 - sept. 2019} \\
+    Une première année de classes préparatoires scientifiques, développant une base solide en mathématiques, physique et sciences de l'ingénieur.
+
+    \item \textbf{Sorbonne Nouvelle, Paris, France} \\
+    \textit{DULF (Cours d'apprentissage du français) -- oct. 2017 - juil. 2018} \\
+    Étude intensive du français pour une intégration académique et professionnelle réussie.
+\end{itemize}
+
+\vspace{-0.5em}
+\section*{\textcolor{navyblue}{Expériences Professionnelles}}
+\begin{itemize}[left=0.5cm]
+    \item \textbf{Arago Inc, Paris, France} \\
+    \textit{Développeur Logiciel -- oct. 2024 - Présent} \\
+    Développement d'un accélérateur IA basé sur des propriétés optiques. Réalisation de démonstrations captivantes mettant en avant des calculs matriciels ultra-rapides et des applications concrètes de l'IA.
+
+    \item \textbf{EyePick, Paris, France} \\
+    \textit{Alternance en R\&D et Vision -- sept. 2023 - sept. 2024} \\
+    Développement d'algorithmes avancés pour la vision par ordinateur, destinés à automatiser les processus industriels. Gestion de projets complexes incluant la détection et le suivi en temps réel d'objets dans des environnements variés.
+
+    \item \textbf{Wandercraft, Paris, France} \\
+    \textit{Stage en RL pour la Robotique -- mars 2023 - sept. 2023} \\
+    Optimisation du contrôle d'exosquelettes robotiques grâce à l'apprentissage par renforcement. Contribution à la recherche appliquée avec une mise en œuvre réussie de transferts sim-to-real sur des architectures GPU.
+
+    \item \textbf{Poppins (ex-Mila), Paris, France} \\
+    \textit{Stage en Développement Jeux Vidéo -- juin 2022 - sept. 2022} \\
+    Création d'un jeu éducatif destiné aux enfants dyslexiques. Intégration d'algorithmes d'apprentissage automatique pour ajuster la difficulté des niveaux en temps réel et enrichir l'expérience utilisateur.
+
+    \item \textbf{Lycée Saint-Louis, Paris, France} \\
+    \textit{Colleur en Classes Préparatoires -- sept. 2021 - juil. 2022} \\
+    Coaching et encadrement d'étudiants en mathématiques avancées, avec un focus sur la pédagogie et la préparation aux concours d'entrée des grandes écoles.
+\end{itemize}
+
+\vspace{-0.5em}
+\section*{\textcolor{navyblue}{Langues}}
+\begin{multicols}{2}
+    \begin{itemize}[label=--, left=0.5cm]
+        \item \textbf{Arabe} : Maternelle
+        \item \textbf{Français} : Bilingue
+        \item \textbf{Anglais} : Bilingue
+        \item \textbf{Espagnol} : Débutant
+    \end{itemize}
+\end{multicols}
+
+\vspace{-0.5em}
+\section*{\textcolor{navyblue}{Hobbies \& Intérêts}}
+\begin{itemize}[label=--, left=0.5cm]
+    \item \textbf{Sports} : Judo, MMA, La lutte, La course, L'escalade
+    \item \textbf{Activités récréatives} : Jeux vidéo, résolution de puzzles, résolution de problèmes mathématiques
+    \item \textbf{Autres intérêts} : Programmation compétitive, exploration de nouvelles technologies, mentorat
+\end{itemize}
+
+\vspace{-0.5em}
+\section*{\textcolor{navyblue}{Distinctions}}
+\begin{itemize}[label=--, left=0.5cm]
+    \item 3 Médailles d'Argent aux Olympiades Scientifiques Syriennes (Mathématiques, Programmation, Robotique)
+\end{itemize}
+
+\end{document}

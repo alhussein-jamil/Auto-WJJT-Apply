@@ -1,0 +1,14 @@
+playwright==1.41.0
+openai==1.11.0
+anthropic==0.8.0
+jinja2==3.1.2
+weasyprint==60.2
+python-dotenv==1.0.0
+sqlalchemy==2.0.25
+typer==0.9.0
+tqdm==4.66.1
+pydantic==2.5.3
+loguru==0.7.2
+beautifulsoup4==4.12.2
+httpx==0.26.0
+google-genai==0.3.1

@@ -1,0 +1,161 @@
+{
+    "full_name": "Alhussein Jamil",
+    "title": "Polytechnic Engineer",
+    "summary": "Polytechnic engineer with excellence training at École Polytechnique, globally recognized for training leaders in science and engineering. Passionate about artificial intelligence, robotics, and intelligent systems, with diverse experience ranging from machine learning research to concrete projects in computer vision and video game development. With proven methodological rigor and creativity, I design innovative solutions adapted to complex technological challenges.",
+    "skills": {
+        "programming_languages": [
+            "Python",
+            "PyTorch",
+            "C++",
+            "C#",
+            "Java",
+            "Caml"
+        ],
+        "frameworks": [
+            "Unity3D",
+            "Gradio"
+        ],
+        "tools": [
+            "Git",
+            "GCS",
+            "3dsMax"
+        ],
+        "soft_skills": [
+            "Effective Communication",
+            "Team Collaboration",
+            "Leadership",
+            "Problem Solving",
+            "Time Management"
+        ]
+    },
+    "experience": [
+        {
+            "title": "Software Developer",
+            "company": "Arago Inc",
+            "location": "Paris, France",
+            "start_date": "2024-10",
+            "end_date": "Present",
+            "description": "Development of an AI accelerator based on optical properties. Creation of compelling demonstrations highlighting ultra-fast matrix calculations and concrete AI applications.",
+            "technologies": ["Python", "AI", "Machine Learning"]
+        },
+        {
+            "title": "R&D and Vision Intern",
+            "company": "EyePick",
+            "location": "Paris, France",
+            "start_date": "2023-09",
+            "end_date": "2024-09",
+            "description": "Development of advanced computer vision algorithms designed to automate industrial processes. Management of complex projects including real-time detection and tracking of objects in varied environments.",
+            "technologies": ["Computer Vision", "Python", "Machine Learning"]
+        },
+        {
+            "title": "RL for Robotics Intern",
+            "company": "Wandercraft",
+            "location": "Paris, France",
+            "start_date": "2023-03",
+            "end_date": "2023-09",
+            "description": "Optimization of robotic exoskeleton control through reinforcement learning. Contribution to applied research with successful implementation of sim-to-real transfers on GPU architectures.",
+            "technologies": ["Reinforcement Learning", "Robotics", "Python", "PyTorch"]
+        },
+        {
+            "title": "Game Development Intern",
+            "company": "Poppins (ex-Mila)",
+            "location": "Paris, France",
+            "start_date": "2022-06",
+            "end_date": "2022-09",
+            "description": "Creation of an educational game for dyslexic children. Integration of machine learning algorithms to adjust level difficulty in real-time and enhance user experience.",
+            "technologies": ["Unity3D", "C#", "Game Development", "Machine Learning"]
+        },
+        {
+            "title": "Mathematics Tutor",
+            "company": "Lycée Saint-Louis",
+            "location": "Paris, France",
+            "start_date": "2021-09",
+            "end_date": "2022-07",
+            "description": "Coaching and mentoring students in advanced mathematics, with a focus on pedagogy and preparation for entrance exams to prestigious engineering schools.",
+            "technologies": ["Mathematics", "Teaching"]
+        }
+    ],
+    "education": [
+        {
+            "degree": "Engineering Program",
+            "institution": "École Polytechnique",
+            "location": "Palaiseau, France",
+            "graduation_date": "Present",
+            "highlights": ["One of the most prestigious institutions worldwide", "Intensive program combining mathematics, physics, and computer science", "Specialization in machine learning", "Participation in robotics and video game development projects"]
+        },
+        {
+            "degree": "Master 2: Intelligent Systems (ISI)",
+            "institution": "Université Pierre et Marie Curie",
+            "location": "Paris, France",
+            "graduation_date": "2024",
+            "highlights": ["Advanced program in artificial intelligence", "Focus on computer vision and emotional perception in virtual reality"]
+        },
+        {
+            "degree": "Classes Préparatoires, MP*",
+            "institution": "Lycée Louis Le Grand",
+            "location": "Paris, France",
+            "graduation_date": "2020",
+            "highlights": ["Elite scientific training in mathematics and physics", "Preparation for prestigious engineering schools' entrance exams"]
+        },
+        {
+            "degree": "Classes Préparatoires, MPSI",
+            "institution": "Lycée Buffon",
+            "location": "Paris, France",
+            "graduation_date": "2019",
+            "highlights": ["First year of scientific preparatory classes", "Development of a solid foundation in mathematics, physics, and engineering sciences"]
+        },
+        {
+            "degree": "DULF (French language course)",
+            "institution": "Sorbonne Nouvelle",
+            "location": "Paris, France",
+            "graduation_date": "2018",
+            "highlights": ["Intensive study of French for successful academic and professional integration"]
+        }
+    ],
+    "languages": [
+        {
+            "language": "Arabic",
+            "proficiency": "Native"
+        },
+        {
+            "language": "French",
+            "proficiency": "Bilingual"
+        },
+        {
+            "language": "English",
+            "proficiency": "Bilingual"
+        },
+        {
+            "language": "Spanish",
+            "proficiency": "Beginner"
+        }
+    ],
+    "projects": [
+        {
+            "name": "AI Accelerator",
+            "description": "Development of an AI accelerator based on optical properties with ultra-fast matrix calculations.",
+            "url": "https://github.com/alhussein-jamil"
+        },
+        {
+            "name": "Educational Game for Dyslexic Children",
+            "description": "Game with adaptive difficulty using machine learning algorithms to help dyslexic children.",
+            "url": "https://ajvendetta.portfoliobox.net"
+        }
+    ],
+    "certifications": [
+        {
+            "name": "3 Silver Medals at Syrian Scientific Olympiads",
+            "issuer": "Syrian Scientific Olympiads",
+            "date": "Mathematics, Programming, Robotics"
+        }
+    ],
+    "interests": [
+        "Sports (Judo, MMA, Wrestling, Running, Climbing)",
+        "Video Games",
+        "Puzzles",
+        "Mathematical Problems",
+        "Competitive Programming",
+        "Exploring New Technologies",
+        "Mentoring"
+    ]
+}

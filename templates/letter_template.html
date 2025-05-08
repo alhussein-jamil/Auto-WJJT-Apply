@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }} - Motivation Letter - {{ job.title }} at {{ job.company }}</title>
+    <style>
+        @page {
+            margin: 2cm;
+            size: A4;
+        }
+
+        html {
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 21cm;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: right;
+            margin-bottom: 2cm;
+        }
+
+        .header .name {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 0.3cm;
+        }
+
+        .header .contact {
+            font-size: 11pt;
+            color: #555;
+        }
+
+        .recipient {
+            margin-bottom: 1.5cm;
+        }
+
+        .date {
+            margin-bottom: 1cm;
+        }
+
+        .greeting {
+            margin-bottom: 0.5cm;
+        }
+
+        .content {
+            text-align: justify;
+            margin-bottom: 1.5cm;
+        }
+
+        .closing {
+            margin-bottom: 1.5cm;
+        }
+
+        .signature {
+            margin-top: 1cm;
+        }
+
+        .footer {
+            margin-top: 2cm;
+            font-size: 9pt;
+            color: #999;
+            text-align: center;
+            border-top: 1pt solid #eee;
+            padding-top: 0.3cm;
+            display: none;
+        }
+
+        p {
+            margin: 0 0 0.8cm 0;
+        }
+
+        .intent {
+            text-indent: 1cm;
+        }
+
+        .job-title {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="name">{{ name }}</div>
+            <div class="contact">{{ email }}</div>
+        </div>
+
+        <div class="date">
+            {{ generated_date }}
+        </div>
+
+        <div class="recipient">
+            <p>{{ job.company }}</p>
+            <p>Recruitment Team</p>
+        </div>
+
+        <div class="subject">
+            <p><strong>Subject:</strong> Application for the position of <span class="job-title">{{ job.title }}</span></p>
+        </div>
+
+        <!-- LLM Generated Content -->
+        <div class="content">
+            {{ content|safe }}
+        </div>
+    </div>
+</body>
+</html>
